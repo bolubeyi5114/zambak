@@ -54,6 +54,15 @@
         <button type="button" class="metrik" data-git="odevler"><span>Bekleyen ödev</span><strong id="m-odev">–</strong></button>
         <button type="button" class="metrik uyari" data-git="mesajlar"><span>Yeni mesaj</span><strong id="m-mesaj">–</strong></button>
       </div>
+      <div class="bant gizli" id="bildirim-bant">
+        <span>Yeni mesaj, ödev ve randevu hatırlatmaları telefonunuza gelsin mi?</span>
+        <button type="button" class="btn kucuk" id="bant-ac">Aç</button>
+      </div>
+      <div class="randevu gizli" id="takip-kart">
+        <h3>Günlük takip</h3>
+        <p class="aciklama">Her akşam kısaca işaretleyin. Uzmanınız gelişimi buradan izliyor.</p>
+        <div id="takip-alani"></div>
+      </div>
       <h3 class="ara-baslik">Randevularınız</h3>
       <div id="randevu-liste"></div>
       <div class="randevu">
@@ -63,6 +72,15 @@
       <div class="randevu">
         <h3>Görüşme özetleri</h3>
         <div id="ozet-listesi"></div>
+      </div>
+      <div class="randevu gizli" id="dosya-kart">
+        <h3>Dosyalar ve raporlar</h3>
+        <div id="dosya-listesi"></div>
+      </div>
+      <div class="randevu">
+        <h3>Bildirimler</h3>
+        <p class="aciklama" id="bildirim-durum">Kontrol ediliyor…</p>
+        <div class="alt-cubuk"><button class="btn" id="bildirim-dugme">Bildirimleri aç</button></div>
       </div>
       <div class="randevu">
         <h3>Hesabım</h3>
@@ -103,6 +121,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/config.js"></script>
+<script src="/push.js"></script>
 <script src="/danisan.js"></script>
 </body>
 </html>

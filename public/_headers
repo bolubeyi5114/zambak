@@ -11,3 +11,9 @@
 
 /*.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
+
+/rapor*
+  X-Robots-Tag: noindex, nofollow
+
+/sw.js
+  Cache-Control: no-cache

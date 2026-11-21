@@ -49,6 +49,10 @@
     <!-- Bugün -->
     <section id="bugun">
       <p class="selam" id="selam"></p>
+      <div class="bant gizli" id="bildirim-bant">
+        <span>Yeni randevu ve mesajlarda telefonunuza bildirim gelsin mi?</span>
+        <button type="button" class="btn kucuk" id="bant-ac">Bildirimleri aç</button>
+      </div>
       <div class="metrikler">
         <button type="button" class="metrik" id="m-bugun"><span>Bugünkü randevu</span><strong id="m-bugun-say">–</strong></button>
         <button type="button" class="metrik uyari" id="m-bekleyen"><span>Onay bekleyen</span><strong id="m-bekleyen-say">–</strong></button>
@@ -65,6 +69,21 @@
       </div>
       <h3 class="ara-baslik">Yarın</h3>
       <div id="yarin-liste"></div>
+      <button type="button" class="satir-kart aylik-git" id="aylik-ac">
+        <span class="sk-orta"><strong>Aylık özet</strong><small>Görüşmeler, yeni danışanlar, konular ve ödevler</small></span>
+        <span class="ok">›</span>
+      </button>
+    </section>
+
+    <!-- Aylık özet -->
+    <section id="aylik" class="gizli">
+      <button class="btn ikincil kucuk" id="aylik-geri">← Bugün</button>
+      <div class="hafta-ust" style="margin-top:12px">
+        <button type="button" class="btn ikincil kucuk" id="ay-geri" aria-label="Önceki ay">‹</button>
+        <strong id="ay-baslik"></strong>
+        <button type="button" class="btn ikincil kucuk" id="ay-ileri" aria-label="Sonraki ay">›</button>
+      </div>
+      <div id="aylik-icerik"></div>
     </section>
 
     <!-- Randevular -->
@@ -119,6 +138,35 @@
       </div>
 
       <div class="randevu" id="giris-kart"></div>
+
+      <div class="randevu">
+        <div class="baslik-satiri"><h3>Günlük takip</h3><button class="btn kucuk" id="takip-ekle-ac">+ Takip</button></div>
+        <p class="aciklama">Veli her gün kendi ekranından değer girer, siz burada grafiğini görürsünüz.</p>
+        <form id="takip-form" class="gizli alt-form">
+          <label>Hazır seçenekler</label>
+          <div class="secenekler" id="takip-hazir"></div>
+          <label for="tk-ad">Ne takip edilecek?</label>
+          <input type="text" id="tk-ad" maxlength="80" placeholder="Örn. Günün en yüksek öfke seviyesi">
+          <div class="satir">
+            <div><label for="tk-min">En düşük</label><input type="number" id="tk-min" value="0"></div>
+            <div><label for="tk-max">En yüksek</label><input type="number" id="tk-max" value="10"></div>
+          </div>
+          <div class="satir">
+            <div><label for="tk-birim">Birim <small>(isteğe bağlı)</small></label><input type="text" id="tk-birim" maxlength="20" placeholder="dk, saat…"></div>
+            <div><label for="tk-yon">Hangisi iyi?</label><select id="tk-yon"><option value="1">Düşük değer iyi</option><option value="0">Yüksek değer iyi</option></select></div>
+          </div>
+          <div class="alt-cubuk"><button type="button" class="btn ikincil" id="takip-iptal">Vazgeç</button><button type="submit" class="btn">Ekle</button></div>
+        </form>
+        <div id="takip-listesi"></div>
+      </div>
+
+      <div class="randevu">
+        <div class="baslik-satiri"><h3>Dosyalar ve raporlar</h3>
+          <label class="btn kucuk dosya-sec">+ Dosya<input type="file" id="dosya-input" accept="application/pdf,image/*,.doc,.docx" hidden></label></div>
+        <p class="aciklama">Test sonuçları, raporlar, çalışma kâğıtları. "Veliye açık" yaptıklarınızı veli kendi ekranından indirebilir.</p>
+        <div id="dosya-durum" class="aciklama gizli"></div>
+        <div id="dosya-listesi"></div>
+      </div>
 
       <div class="randevu">
         <div class="baslik-satiri"><h3>İlerleme</h3><span class="aciklama" id="ilerleme-ozet"></span></div>
@@ -232,6 +280,12 @@
 
     <section id="hesap-ayar" class="gizli">
       <div class="randevu">
+        <h3>Bildirimler</h3>
+        <p class="aciklama" id="bildirim-durum">Kontrol ediliyor…</p>
+        <div class="alt-cubuk"><button class="btn" id="bildirim-dugme">Bildirimleri aç</button></div>
+        <p class="aciklama kucuk-not">Yeni randevu talebi, danışan mesajı ve her sabah 08:00'de günün randevu sayısı için bildirim gelir.</p>
+      </div>
+      <div class="randevu">
         <h3>Şifre değiştir</h3>
         <label for="yeni-sifre">Yeni şifre <small>(en az 8 karakter)</small></label>
         <input type="password" id="yeni-sifre" autocomplete="new-password" minlength="8">
@@ -261,6 +315,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/config.js"></script>
+<script src="/push.js"></script>
 <script src="/yonetim.js"></script>
 </body>
 </html>

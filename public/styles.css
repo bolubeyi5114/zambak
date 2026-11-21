@@ -251,3 +251,39 @@ input[type=search],input[type=datetime-local]{width:100%;padding:12px 13px;borde
 .alt-menu.uclu{grid-template-columns:repeat(3,1fr)}
 .mesajlar.uzun{max-height:calc(100vh - 330px);min-height:240px}
 .iletisim .danisan-link{display:inline-block;margin-top:10px}
+
+/* Bildirim bandı, takip, dosyalar, aylık özet */
+.bant{display:flex;align-items:center;gap:10px;background:var(--ada-acik);color:var(--yesil);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:.92rem}
+.bant span{flex:1}
+.aylik-git{margin-top:18px;border-left-color:var(--yesil)}
+.aylik-git .ok{font-size:1.6rem;color:var(--yesil);line-height:1}
+.metrik small{display:block;font-size:.75rem;margin-top:2px}
+.iyi{color:var(--yesil-orta);font-weight:700}
+.kotu{color:var(--kirmizi);font-weight:700}
+.takip{border-top:1px solid var(--krem-koyu);padding:12px 0}
+.takip:first-child{border-top:0}
+.takip.pasif{opacity:.55}
+.takip-svg{width:100%;height:auto;display:block;margin:4px 0}
+.takip-notlar{background:var(--krem);border-radius:10px;padding:6px 10px;margin-top:6px;font-size:.88rem}
+.takip-notlar p{margin:3px 0}
+.takip-notlar span{color:var(--soluk);font-weight:600;margin-right:4px}
+.dosya-sec{cursor:pointer}
+.dosya{border-top:1px solid var(--krem-koyu);padding:10px 0;display:flex;flex-direction:column;gap:6px}
+.dosya:first-child{border-top:0}
+.dosya-ad{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;text-align:left;font:inherit;color:var(--metin);cursor:pointer}
+.dosya-ad strong{display:block;word-break:break-word}
+.dosya-ad small{display:block;color:var(--soluk);font-size:.82rem}
+.dosya-ikon{flex:0 0 44px;height:44px;border-radius:10px;background:var(--ada-acik);color:var(--yesil);font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.dosya .islemler{margin-top:0}
+.konu-cubuk{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 28px;align-items:center;gap:8px;margin:7px 0;font-size:.9rem}
+.konu-cubuk div{background:var(--krem);border-radius:6px;height:12px;overflow:hidden}
+.konu-cubuk i{display:block;height:100%;background:var(--yesil-orta);border-radius:6px}
+.konu-cubuk b{text-align:right}
+.takip-giris{border-top:1px solid var(--krem-koyu);padding:12px 0}
+.takip-giris:first-of-type{border-top:0}
+.deger-izgara{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
+.deger-izgara.onbir{grid-template-columns:repeat(6,1fr)}
+.deger{border:1.5px solid var(--krem-koyu);background:#fff;border-radius:10px;padding:9px 0;font:inherit;font-weight:700;cursor:pointer;color:var(--metin)}
+.deger.secili{background:var(--yesil);border-color:var(--yesil);color:#fff}
+.gun-sec{display:flex;gap:6px;margin:6px 0}
+.kaydedildi{color:var(--yesil-orta);font-weight:700;font-size:.85rem}
