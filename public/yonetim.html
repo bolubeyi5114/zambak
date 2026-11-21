@@ -43,20 +43,44 @@
   <div class="kap">
     <div class="panel-ust">
       <img src="/logo.webp" alt="" width="44" height="44">
-      <h1>Zambak Danışmanlık</h1>
-      <button class="btn ikincil kucuk" id="cikis">Çıkış</button>
+      <h1 id="bolum-baslik">Bugün</h1>
     </div>
 
-    <div class="sekmeler" id="sekmeler">
-      <button class="sekme aktif" data-sekme="yaklasan">Yaklaşan</button>
-      <button class="sekme" data-sekme="beklemede">Onay bekleyen <span id="bekleyen-say"></span></button>
-      <button class="sekme" data-sekme="danisanlar">Danışanlar</button>
-      <button class="sekme" data-sekme="gecmis">Geçmiş</button>
-      <button class="sekme" data-sekme="takvim">Çalışma saatleri</button>
-      <button class="sekme" data-sekme="hesap">Hesap</button>
-    </div>
+    <!-- Bugün -->
+    <section id="bugun">
+      <p class="selam" id="selam"></p>
+      <div class="metrikler">
+        <button type="button" class="metrik" id="m-bugun"><span>Bugünkü randevu</span><strong id="m-bugun-say">–</strong></button>
+        <button type="button" class="metrik uyari" id="m-bekleyen"><span>Onay bekleyen</span><strong id="m-bekleyen-say">–</strong></button>
+      </div>
+      <h3 class="ara-baslik">Bugünün programı</h3>
+      <div id="bugun-liste"></div>
+      <div id="geciken-kap" class="gizli">
+        <h3 class="ara-baslik">Süresi geçen ödevler</h3>
+        <div id="geciken-liste"></div>
+      </div>
+      <h3 class="ara-baslik">Yarın</h3>
+      <div id="yarin-liste"></div>
+    </section>
 
-    <section id="liste"></section>
+    <!-- Randevular -->
+    <section id="randevular" class="gizli">
+      <div class="secenekler" id="randevu-filtre">
+        <button type="button" class="cip secili" data-mod="gun">Takvim</button>
+        <button type="button" class="cip" data-mod="beklemede">Onay bekleyen <span id="bekleyen-say"></span></button>
+        <button type="button" class="cip" data-mod="gecmis">Geçmiş</button>
+      </div>
+      <div id="hafta-kap">
+        <div class="hafta-ust">
+          <button type="button" class="btn ikincil kucuk" id="hafta-geri" aria-label="Önceki hafta">‹</button>
+          <strong id="hafta-baslik"></strong>
+          <button type="button" class="btn ikincil kucuk" id="hafta-ileri" aria-label="Sonraki hafta">›</button>
+        </div>
+        <div class="hafta" id="hafta"></div>
+        <h3 class="ara-baslik" id="gun-baslik"></h3>
+      </div>
+      <section id="liste"></section>
+    </section>
 
     <!-- Danışanlar listesi -->
     <section id="danisan-liste" class="gizli">
@@ -201,8 +225,20 @@
         <input type="text" id="randevu-link" readonly>
         <div class="alt-cubuk"><button class="btn ikincil" id="link-kopyala">Bağlantıyı kopyala</button></div>
       </div>
+      <div class="randevu">
+        <h3>Oturum</h3>
+        <p class="aciklama">Bu cihazdan çıkış yapın.</p>
+        <div class="alt-cubuk"><button class="btn ikincil" id="cikis">Çıkış yap</button></div>
+      </div>
     </section>
   </div>
+
+  <nav class="alt-menu" aria-label="Ana menü">
+    <button type="button" data-menu="bugun" class="aktif"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><path d="M9 21v-6h6v6"/></svg>Bugün</button>
+    <button type="button" data-menu="randevular"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16M8 15h2v2H8z"/></svg>Randevular<span class="nokta gizli" id="menu-bekleyen"></span></button>
+    <button type="button" data-menu="danisanlar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Danışanlar</button>
+    <button type="button" data-menu="ayarlar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.3c.4-1.8 3-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 0 0 1 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 0 0-2.5-1c-1.6.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1.1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 0 0 1.1-2.5c-.9-1.6.8-3.3 2.4-2.4 1 .6 2.3.1 2.5-1.1z"/><circle cx="12" cy="12" r="3"/></svg>Ayarlar</button>
+  </nav>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

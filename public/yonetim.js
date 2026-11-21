@@ -10,7 +10,6 @@
   const GUNLER = ["", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
   const KIMIN = { cocuk: "Çocuk", ergen: "Ergen", yetiskin: "Yetişkin", cift_aile: "Çift / Aile" };
   const DURUM = { beklemede: "Onay bekliyor", onaylandi: "Onaylandı", iptal: "İptal", tamamlandi: "Tamamlandı" };
-  let aktifSekme = "yaklasan";
 
   function bildir(m) {
     const el = document.createElement("div");
@@ -57,45 +56,133 @@
     $("#giris-ekrani").classList.add("gizli");
     $("#panel").classList.remove("gizli");
     $("#randevu-link").value = location.origin + "/";
-    sekmeAc(aktifSekme);
+    menuAc("bugun");
   }
 
-  // ---------- Sekmeler ----------
-  $$(".sekme").forEach((b) => b.addEventListener("click", () => sekmeAc(b.dataset.sekme)));
-  function bolumGoster(id) {
-    ["#liste", "#takvim-ayar", "#hesap-ayar", "#danisan-liste", "#danisan-dosya", "#danisan-form-alan"].forEach((s) =>
-      $(s).classList.toggle("gizli", s !== id)
+  // ---------- Menü ----------
+  const BASLIK = { bugun: "Bugün", randevular: "Randevular", danisanlar: "Danışanlar", ayarlar: "Ayarlar" };
+  let randevuMod = "gun";
+  const tzGun = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: C.TZ }).format(d);
+  let seciliGun = tzGun(new Date());
+  $$(".alt-menu [data-menu]").forEach((b) => b.addEventListener("click", () => menuAc(b.dataset.menu)));
+  function menuIsaretle(ad) {
+    $$(".alt-menu [data-menu]").forEach((b) => b.classList.toggle("aktif", b.dataset.menu === ad));
+    $("#bolum-baslik").textContent = BASLIK[ad];
+  }
+  function bolumGoster(...idler) {
+    ["#bugun", "#randevular", "#takvim-ayar", "#hesap-ayar", "#danisan-liste", "#danisan-dosya", "#danisan-form-alan"].forEach((s) =>
+      $(s).classList.toggle("gizli", !idler.includes(s))
     );
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function sekmeAc(ad) {
-    aktifSekme = ad;
-    $$(".sekme").forEach((b) => b.classList.toggle("aktif", b.dataset.sekme === ad));
-    if (ad === "takvim") { bolumGoster("#takvim-ayar"); takvimAyarYukle(); }
-    else if (ad === "hesap") bolumGoster("#hesap-ayar");
+  function menuAc(ad) {
+    if (ad === "randevular" && seciliGun === null) seciliGun = tzGun(new Date());
+    menuIsaretle(ad);
+    if (ad === "bugun") { bolumGoster("#bugun"); bugunYukle(); }
+    else if (ad === "randevular") { bolumGoster("#randevular"); randevuEkrani(); }
     else if (ad === "danisanlar") { bolumGoster("#danisan-liste"); danisanlariYukle(); }
-    else { bolumGoster("#liste"); randevulariYukle(); }
+    else { bolumGoster("#takvim-ayar", "#hesap-ayar"); takvimAyarYukle(); }
     bekleyenSay();
   }
 
   async function bekleyenSay() {
     const { count } = await sb.from("appointments").select("id", { count: "exact", head: true }).eq("status", "beklemede");
     $("#bekleyen-say").textContent = count ? `(${count})` : "";
+    $("#menu-bekleyen").classList.toggle("gizli", !count);
+    return count || 0;
   }
 
-  // ---------- Randevular ----------
+  // Türkiye sabit UTC+03:00
+  const gunBas = (g) => `${g}T00:00:00+03:00`;
+  const gunEkle = (g, n) => { const d = new Date(g + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const fmtSaatK = new Intl.DateTimeFormat("tr-TR", { timeZone: C.TZ, hour: "2-digit", minute: "2-digit" });
+  const fmtGunUzun = new Intl.DateTimeFormat("tr-TR", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+
+  // ---------- Bugün ----------
+  async function bugunYukle() {
+    const bugun = tzGun(new Date());
+    const saat = Number(new Intl.DateTimeFormat("en-GB", { timeZone: C.TZ, hour: "2-digit", hour12: false }).format(new Date()));
+    const selam = saat < 12 ? "Günaydın" : saat < 18 ? "İyi günler" : "İyi akşamlar";
+    $("#selam").textContent = `${selam}, ${C.UZMAN.split(" ")[0]} Hanım · ${fmtGunUzun.format(new Date(bugun + "T12:00:00Z"))}`;
+    const sec = "*, topics(name), clients(full_name)";
+    const [{ data: bugunR }, { data: yarinR }, bekleyen, { data: geciken }] = await Promise.all([
+      sb.from("appointments").select(sec).gte("start_at", gunBas(bugun)).lt("start_at", gunBas(gunEkle(bugun, 1))).neq("status", "iptal").order("start_at"),
+      sb.from("appointments").select(sec).gte("start_at", gunBas(gunEkle(bugun, 1))).lt("start_at", gunBas(gunEkle(bugun, 2))).neq("status", "iptal").order("start_at"),
+      bekleyenSay(),
+      sb.from("tasks").select("id,title,assigned_to,due_date,client_id,clients(full_name)").eq("status", "verildi").lt("due_date", bugun).order("due_date"),
+    ]);
+    $("#m-bugun-say").textContent = (bugunR || []).length;
+    $("#m-bekleyen-say").textContent = bekleyen;
+    gunListesi($("#bugun-liste"), bugunR || [], "Bugün için randevu yok.");
+    gunListesi($("#yarin-liste"), yarinR || [], "Yarın için randevu yok.");
+    const g = geciken || [];
+    $("#geciken-kap").classList.toggle("gizli", !g.length);
+    $("#geciken-liste").innerHTML = g.map((t) => `<button type="button" class="satir-kart geciken" data-danisan="${t.client_id}">
+        <span class="sk-sol">${esc(fmtGunKisa.format(new Date(t.due_date + "T12:00:00Z")))}</span>
+        <span class="sk-orta"><strong>${esc(t.clients ? t.clients.full_name : "")}</strong><small>${esc(t.title)} · ${KIME[t.assigned_to]}</small></span>
+      </button>`).join("");
+    $$("#geciken-liste [data-danisan]").forEach((b) => b.addEventListener("click", () => dosyaAc(b.dataset.danisan)));
+  }
+  function gunListesi(kap, liste, bos) {
+    if (!liste.length) { kap.innerHTML = `<p class="bos">${bos}</p>`; return; }
+    kap.innerHTML = liste.map((r) => `<button type="button" class="satir-kart ${r.status}" data-r="${r.id}">
+        <span class="sk-sol">${esc(fmtSaatK.format(new Date(r.start_at)))}</span>
+        <span class="sk-orta"><strong>${esc(r.clients ? r.clients.full_name : r.client_name)}</strong><small>${esc(r.topics ? r.topics.name : "")}</small></span>
+        <span class="rozet ${r.status}">${DURUM[r.status]}</span>
+      </button>`).join("");
+    $$("[data-r]", kap).forEach((b) => b.addEventListener("click", () => {
+      const r = liste.find((x) => x.id === b.dataset.r);
+      if (r.client_id) dosyaAc(r.client_id);
+      else { randevuMod = "gun"; seciliGun = tzGun(new Date(r.start_at)); menuAc("randevular"); }
+    }));
+  }
+  $("#m-bugun").addEventListener("click", () => { randevuMod = "gun"; seciliGun = tzGun(new Date()); menuAc("randevular"); });
+  $("#m-bekleyen").addEventListener("click", () => { randevuMod = "beklemede"; menuAc("randevular"); });
+
+  // ---------- Randevular (haftalık takvim) ----------
+  $$("#randevu-filtre .cip").forEach((b) => b.addEventListener("click", () => { randevuMod = b.dataset.mod; randevuEkrani(); }));
+  $("#hafta-geri").addEventListener("click", () => { seciliGun = gunEkle(seciliGun, -7); randevuEkrani(); });
+  $("#hafta-ileri").addEventListener("click", () => { seciliGun = gunEkle(seciliGun, 7); randevuEkrani(); });
+  const GUN_KISA = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+  async function randevuEkrani() {
+    $$("#randevu-filtre .cip").forEach((b) => b.classList.toggle("secili", b.dataset.mod === randevuMod));
+    $("#hafta-kap").classList.toggle("gizli", randevuMod !== "gun");
+    if (randevuMod === "gun") haftaCiz();
+    randevulariYukle();
+  }
+  async function haftaCiz() {
+    const d = new Date(seciliGun + "T12:00:00Z");
+    const pzt = gunEkle(seciliGun, -((d.getUTCDay() + 6) % 7));
+    const gunler = Array.from({ length: 7 }, (_, i) => gunEkle(pzt, i));
+    const f = new Intl.DateTimeFormat("tr-TR", { timeZone: "UTC", day: "numeric", month: "short" });
+    $("#hafta-baslik").textContent = `${f.format(new Date(pzt + "T12:00:00Z"))} – ${f.format(new Date(gunler[6] + "T12:00:00Z"))}`;
+    $("#gun-baslik").textContent = fmtGunUzun.format(new Date(seciliGun + "T12:00:00Z"));
+    const bugun = tzGun(new Date());
+    const ciz = (say) => {
+      $("#hafta").innerHTML = gunler.map((g, i) => `<button type="button" class="hgun${g === seciliGun ? " secili" : ""}${g === bugun ? " bugun" : ""}" data-g="${g}">
+          <span>${GUN_KISA[i]}</span><strong>${Number(g.slice(8))}</strong><em>${say[g] || ""}</em>
+        </button>`).join("");
+      $$("#hafta [data-g]").forEach((b) => b.addEventListener("click", () => { seciliGun = b.dataset.g; haftaCiz(); randevulariYukle(); }));
+    };
+    ciz({});
+    const { data } = await sb.from("appointments").select("start_at").gte("start_at", gunBas(pzt)).lt("start_at", gunBas(gunEkle(pzt, 7))).neq("status", "iptal");
+    const say = {};
+    (data || []).forEach((r) => { const g = tzGun(new Date(r.start_at)); say[g] = (say[g] || 0) + 1; });
+    ciz(say);
+  }
+
   async function randevulariYukle() {
     const kap = $("#liste");
     kap.innerHTML = '<div class="yukleniyor">Yükleniyor…</div>';
     const simdi = new Date().toISOString();
     let q = sb.from("appointments").select("*, topics(name)");
-    if (aktifSekme === "yaklasan") q = q.gte("start_at", simdi).in("status", ["beklemede", "onaylandi"]).order("start_at");
-    else if (aktifSekme === "beklemede") q = q.eq("status", "beklemede").order("start_at");
+    if (randevuMod === "gun") q = q.gte("start_at", gunBas(seciliGun)).lt("start_at", gunBas(gunEkle(seciliGun, 1))).order("start_at");
+    else if (randevuMod === "beklemede") q = q.eq("status", "beklemede").order("start_at");
     else q = q.or(`start_at.lt.${simdi},status.in.(iptal,tamamlandi)`).order("start_at", { ascending: false }).limit(100);
     const { data, error } = await q;
     if (error) { kap.innerHTML = '<div class="hata">Randevular yüklenemedi.</div>'; return; }
     if (!data.length) {
-      kap.innerHTML = `<p class="bos">${aktifSekme === "gecmis" ? "Geçmiş randevu yok." : "Şu an bu listede randevu yok."}</p>`;
+      kap.innerHTML = `<p class="bos">${randevuMod === "gecmis" ? "Geçmiş randevu yok." : randevuMod === "beklemede" ? "Onay bekleyen randevu yok." : "Bu gün için randevu yok."}</p>`;
       return;
     }
     kap.innerHTML = data.map(kartHtml).join("");
@@ -328,7 +415,7 @@
   $("#yeni-danisan").addEventListener("click", () => danisanFormuAc());
   $("#df-iptal").addEventListener("click", () => {
     if ($("#df-id").value) dosyaAc($("#df-id").value);
-    else if ($("#df-randevu").value) sekmeAc(aktifSekme === "danisanlar" ? "danisanlar" : "yaklasan");
+    else if ($("#df-randevu").value) menuAc("randevular");
     else bolumGoster("#danisan-liste");
   });
 
@@ -374,11 +461,10 @@
   });
 
   // ---------- Dosya ekranı ----------
-  $("#dosya-geri").addEventListener("click", () => { $$(".sekme").forEach((b) => b.classList.toggle("aktif", b.dataset.sekme === "danisanlar")); aktifSekme = "danisanlar"; bolumGoster("#danisan-liste"); danisanlariYukle(); });
+  $("#dosya-geri").addEventListener("click", () => menuAc("danisanlar"));
 
   async function dosyaAc(id) {
-    $$(".sekme").forEach((b) => b.classList.toggle("aktif", b.dataset.sekme === "danisanlar"));
-    aktifSekme = "danisanlar";
+    menuIsaretle("danisanlar");
     bolumGoster("#danisan-dosya");
     $("#dosya-bilgi").innerHTML = '<div class="yukleniyor">Yükleniyor…</div>';
     $("#gorusme-form").classList.add("gizli");
