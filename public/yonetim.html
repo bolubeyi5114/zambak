@@ -53,6 +53,10 @@
         <button type="button" class="metrik" id="m-bugun"><span>Bugünkü randevu</span><strong id="m-bugun-say">–</strong></button>
         <button type="button" class="metrik uyari" id="m-bekleyen"><span>Onay bekleyen</span><strong id="m-bekleyen-say">–</strong></button>
       </div>
+      <div id="yeni-mesaj-kap" class="gizli">
+        <h3 class="ara-baslik">Yeni mesajlar</h3>
+        <div id="yeni-mesaj-liste"></div>
+      </div>
       <h3 class="ara-baslik">Bugünün programı</h3>
       <div id="bugun-liste"></div>
       <div id="geciken-kap" class="gizli">
@@ -105,6 +109,18 @@
       <div class="randevu" id="dosya-bilgi"></div>
 
       <div class="randevu">
+        <div class="baslik-satiri"><h3>Mesajlar</h3><span class="aciklama" id="mesaj-durum"></span></div>
+        <div class="mesajlar" id="mesaj-listesi"></div>
+        <form class="mesaj-yaz" id="mesaj-form">
+          <textarea id="mesaj-metin" rows="2" maxlength="2000" placeholder="Mesajınızı yazın"></textarea>
+          <button type="submit" class="btn kucuk">Gönder</button>
+        </form>
+        <p class="aciklama kucuk-not" id="mesaj-not"></p>
+      </div>
+
+      <div class="randevu" id="giris-kart"></div>
+
+      <div class="randevu">
         <div class="baslik-satiri"><h3>İlerleme</h3><span class="aciklama" id="ilerleme-ozet"></span></div>
         <div class="ilerleme-grafik" id="ilerleme-grafik"></div>
       </div>
@@ -138,6 +154,8 @@
           <textarea id="g-gozlem" style="min-height:80px" placeholder="Duygu durumu, davranışlar, uygulanan teknikler…"></textarea>
           <label>İlerleme değerlendirmesi <small>(1 = başlangıç, 10 = hedefe ulaşıldı)</small></label>
           <div class="puanlar" id="g-puan"></div>
+          <label for="g-paylasim">Danışana / veliye görünecek özet <small>(isteğe bağlı)</small></label>
+          <textarea id="g-paylasim" style="min-height:80px" placeholder="Danışanın kendi ekranında göreceği kısa özet ve öneriler. Yukarıdaki notlar ve gözlemler ona görünmez."></textarea>
           <label for="g-plan">Bir sonraki görüşme planı <small>(isteğe bağlı)</small></label>
           <textarea id="g-plan" style="min-height:70px"></textarea>
           <div class="alt-cubuk"><button type="button" class="btn ikincil" id="gorusme-iptal">Vazgeç</button><button type="submit" class="btn">Kaydet</button></div>
@@ -236,7 +254,7 @@
   <nav class="alt-menu" aria-label="Ana menü">
     <button type="button" data-menu="bugun" class="aktif"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><path d="M9 21v-6h6v6"/></svg>Bugün</button>
     <button type="button" data-menu="randevular"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16M8 15h2v2H8z"/></svg>Randevular<span class="nokta gizli" id="menu-bekleyen"></span></button>
-    <button type="button" data-menu="danisanlar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Danışanlar</button>
+    <button type="button" data-menu="danisanlar"><span class="nokta gizli" id="menu-mesaj"></span><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Danışanlar</button>
     <button type="button" data-menu="ayarlar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.3c.4-1.8 3-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 0 0 1 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 0 0-2.5-1c-1.6.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1.1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 0 0 1.1-2.5c-.9-1.6.8-3.3 2.4-2.4 1 .6 2.3.1 2.5-1.1z"/><circle cx="12" cy="12" r="3"/></svg>Ayarlar</button>
   </nav>
 </div>

@@ -232,3 +232,22 @@ input[type=search],input[type=datetime-local]{width:100%;padding:12px 13px;borde
 .hgun.secili{background:var(--yesil);border-color:var(--yesil);color:#fff}
 .hgun.secili span{color:#e6eedb}
 .hgun.secili em{background:#fff;color:var(--yesil)}
+
+/* Mesajlar ve giriş */
+.mesajlar{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px 8px}
+.balon{max-width:82%;padding:8px 12px;border-radius:14px;font-size:.95rem}
+.balon p{margin:0;white-space:pre-wrap;word-break:break-word}
+.balon small{display:block;font-size:.72rem;margin-top:3px;opacity:.75}
+.balon.gelen{align-self:flex-start;background:var(--krem);border-bottom-left-radius:4px}
+.balon.giden{align-self:flex-end;background:var(--yesil);color:#fff;border-bottom-right-radius:4px}
+.mesaj-yaz{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
+.mesaj-yaz textarea{min-height:46px;flex:1}
+.mesaj-yaz .btn{min-height:46px}
+.kucuk-not{font-size:.82rem;margin:4px 0 0}
+.bilgi-kutu{background:var(--ada-acik);border-radius:12px;padding:12px 14px;margin-top:12px;color:var(--yesil)}
+.bilgi-kutu p{margin:6px 0}
+.gorusme-bolum.paylasim{background:var(--ada-acik);border-radius:10px;padding:8px 10px}
+.kart-alt .vurgu-mesaj{color:var(--yesil);font-weight:700}
+.alt-menu.uclu{grid-template-columns:repeat(3,1fr)}
+.mesajlar.uzun{max-height:calc(100vh - 330px);min-height:240px}
+.iletisim .danisan-link{display:inline-block;margin-top:10px}

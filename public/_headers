@@ -6,5 +6,8 @@
 /yonetim*
   X-Robots-Tag: noindex, nofollow
 
+/danisan*
+  X-Robots-Tag: noindex, nofollow
+
 /*.webmanifest
   Content-Type: application/manifest+json; charset=utf-8

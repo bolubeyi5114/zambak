@@ -83,6 +83,13 @@
     else if (ad === "danisanlar") { bolumGoster("#danisan-liste"); danisanlariYukle(); }
     else { bolumGoster("#takvim-ayar", "#hesap-ayar"); takvimAyarYukle(); }
     bekleyenSay();
+    mesajSay();
+  }
+
+  async function mesajSay() {
+    const { count } = await sb.from("messages").select("id", { count: "exact", head: true }).eq("sender", "danisan").is("read_at", null);
+    $("#menu-mesaj").classList.toggle("gizli", !count);
+    return count || 0;
   }
 
   async function bekleyenSay() {
@@ -122,6 +129,17 @@
         <span class="sk-orta"><strong>${esc(t.clients ? t.clients.full_name : "")}</strong><small>${esc(t.title)} · ${KIME[t.assigned_to]}</small></span>
       </button>`).join("");
     $$("#geciken-liste [data-danisan]").forEach((b) => b.addEventListener("click", () => dosyaAc(b.dataset.danisan)));
+    const { data: yeniM } = await sb.from("messages").select("client_id,body,created_at,clients(full_name)").eq("sender", "danisan").is("read_at", null).order("created_at", { ascending: false }).limit(50);
+    const kisi = {};
+    (yeniM || []).forEach((m) => { if (!kisi[m.client_id]) kisi[m.client_id] = { ...m, adet: 0 }; kisi[m.client_id].adet++; });
+    const mk = Object.values(kisi);
+    $("#yeni-mesaj-kap").classList.toggle("gizli", !mk.length);
+    $("#yeni-mesaj-liste").innerHTML = mk.map((m) => `<button type="button" class="satir-kart mesaj-satir" data-danisan="${m.client_id}">
+        <span class="sk-sol">${esc(fmtSaatK.format(new Date(m.created_at)))}</span>
+        <span class="sk-orta"><strong>${esc(m.clients ? m.clients.full_name : "")}</strong><small>${esc(m.body)}</small></span>
+        <span class="rozet beklemede">${m.adet}</span>
+      </button>`).join("");
+    $$("#yeni-mesaj-liste [data-danisan]").forEach((b) => b.addEventListener("click", () => dosyaAc(b.dataset.danisan, "mesaj")));
   }
   function gunListesi(kap, liste, bos) {
     if (!liste.length) { kap.innerHTML = `<p class="bos">${bos}</p>`; return; }
@@ -366,7 +384,7 @@
   async function danisanlariYukle() {
     const kap = $("#danisan-kartlari");
     kap.innerHTML = '<div class="yukleniyor">Yükleniyor…</div>';
-    let q = sb.from("clients").select("id,full_name,client_type,age,phone,status,topics(name),sessions(session_date,progress),tasks(status)").order("full_name");
+    let q = sb.from("clients").select("id,full_name,client_type,age,phone,status,topics(name),sessions(session_date,progress),tasks(status),messages(sender,read_at),client_accounts(phone)").order("full_name");
     if (danisanFiltre) q = q.eq("status", danisanFiltre);
     const ara = $("#danisan-ara").value.trim().replace(/[,()]/g, " ");
     if (ara) q = q.or(`full_name.ilike.*${ara}*,phone.ilike.*${ara}*,contact_name.ilike.*${ara}*`);
@@ -377,6 +395,8 @@
       const s = (c.sessions || []).slice().sort((a, b) => b.session_date.localeCompare(a.session_date));
       const son = s[0];
       const acik = (c.tasks || []).filter((t) => t.status === "verildi").length;
+      const okunmamis = (c.messages || []).filter((m) => m.sender === "danisan" && !m.read_at).length;
+      const girisli = c.client_accounts && (Array.isArray(c.client_accounts) ? c.client_accounts.length : true);
       return `<article class="randevu danisan-kart" data-ac="${c.id}">
         <span class="rozet ${c.status === "aktif" ? "onaylandi" : c.status === "tamamlandi" ? "tamamlandi" : "iptal"}">${DANISAN_DURUM[c.status]}</span>
         <div class="tarih">${esc(c.full_name)}${c.age !== null ? ` <small>· ${c.age} yaş</small>` : ""}</div>
@@ -386,6 +406,8 @@
           <span>${son ? "Son: " + esc(fmtGunKisa.format(new Date(son.session_date))) : "Henüz görüşme yok"}</span>
           ${son && son.progress ? `<span>İlerleme ${son.progress}/10</span>` : ""}
           ${acik ? `<span class="vurgu">${acik} açık ödev</span>` : ""}
+          ${okunmamis ? `<span class="vurgu-mesaj">${okunmamis} yeni mesaj</span>` : ""}
+          ${girisli ? `<span>Giriş açık</span>` : ""}
         </div>
       </article>`;
     }).join("");
@@ -463,7 +485,7 @@
   // ---------- Dosya ekranı ----------
   $("#dosya-geri").addEventListener("click", () => menuAc("danisanlar"));
 
-  async function dosyaAc(id) {
+  async function dosyaAc(id, hedef) {
     menuIsaretle("danisanlar");
     bolumGoster("#danisan-dosya");
     $("#dosya-bilgi").innerHTML = '<div class="yukleniyor">Yükleniyor…</div>';
@@ -496,6 +518,9 @@
     $("#dosya-duzenle").addEventListener("click", () => danisanFormuAc(aktifDanisan));
     gorusmeleriYukle();
     odevleriYukle();
+    girisKartiYukle();
+    await mesajlariYukle();
+    if (hedef === "mesaj") $("#mesaj-form").scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   // ---------- Görüşmeler ----------
@@ -519,6 +544,7 @@
     $("#g-tarih").value = yerelZaman(s.session_date);
     $("#g-ozet").value = s.summary || "";
     $("#g-gozlem").value = s.observations || "";
+    $("#g-paylasim").value = s.shared_summary || "";
     $("#g-plan").value = s.next_plan || "";
     puanlariCiz(s.progress);
     $("#gorusme-form").classList.remove("gizli");
@@ -537,6 +563,7 @@
       session_date: `${tarih}:00+03:00`,
       summary: $("#g-ozet").value.trim(),
       observations: $("#g-gozlem").value.trim() || null,
+      shared_summary: $("#g-paylasim").value.trim() || null,
       progress: gorusmePuan,
       next_plan: $("#g-plan").value.trim() || null,
     };
@@ -578,6 +605,7 @@
         </div>
         ${s.summary ? `<div class="gorusme-bolum"><span>Görüşülenler</span><p>${esc(s.summary)}</p></div>` : ""}
         ${s.observations ? `<div class="gorusme-bolum"><span>Gözlemler</span><p>${esc(s.observations)}</p></div>` : ""}
+        ${s.shared_summary ? `<div class="gorusme-bolum paylasim"><span>Veliye görünen özet</span><p>${esc(s.shared_summary)}</p></div>` : ""}
         ${s.next_plan ? `<div class="gorusme-bolum"><span>Sonraki plan</span><p>${esc(s.next_plan)}</p></div>` : ""}
         <div class="islemler">
           <button class="btn kucuk ikincil" data-g-duzenle="${s.id}">Düzenle</button>
@@ -669,6 +697,124 @@
       await sb.from("tasks").delete().eq("id", b.dataset.oSil);
       odevleriYukle();
     }));
+  }
+
+  // =====================================================================
+  // MESAJLAR
+  // =====================================================================
+  const fmtMesaj = new Intl.DateTimeFormat("tr-TR", { timeZone: C.TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  async function mesajlariYukle() {
+    if (!aktifDanisan) return;
+    const id = aktifDanisan.id;
+    const { data } = await sb.from("messages").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(200);
+    if (!aktifDanisan || aktifDanisan.id !== id) return;
+    const liste = (data || []).slice().reverse();
+    const kap = $("#mesaj-listesi");
+    const enAltta = kap.scrollHeight - kap.scrollTop - kap.clientHeight < 40;
+    kap.innerHTML = liste.length ? liste.map((m) => `
+      <div class="balon ${m.sender === "uzman" ? "giden" : "gelen"}">
+        <p>${esc(m.body)}</p>
+        <small>${esc(fmtMesaj.format(new Date(m.created_at)))}${m.sender === "uzman" ? (m.read_at ? " · Okundu" : " · İletildi") : ""}</small>
+      </div>`).join("") : '<p class="bos">Henüz mesaj yok.</p>';
+    if (enAltta || !kap.dataset.yuklendi) kap.scrollTop = kap.scrollHeight;
+    kap.dataset.yuklendi = "1";
+    const okunmamis = liste.filter((m) => m.sender === "danisan" && !m.read_at).map((m) => m.id);
+    if (okunmamis.length) { await sb.from("messages").update({ read_at: new Date().toISOString() }).in("id", okunmamis); mesajSay(); }
+  }
+  $("#mesaj-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const metin = $("#mesaj-metin").value.trim();
+    if (!metin || !aktifDanisan) return;
+    const btn = $("#mesaj-form button");
+    btn.disabled = true;
+    const { error } = await sb.from("messages").insert({ client_id: aktifDanisan.id, sender: "uzman", body: metin });
+    btn.disabled = false;
+    if (error) return bildir("Mesaj gönderilemedi.");
+    $("#mesaj-metin").value = "";
+    $("#mesaj-listesi").dataset.yuklendi = "";
+    mesajlariYukle();
+  });
+  setInterval(() => {
+    if (document.hidden) return;
+    if (!$("#danisan-dosya").classList.contains("gizli")) mesajlariYukle();
+    else if (!$("#panel").classList.contains("gizli")) mesajSay();
+  }, 20000);
+
+  // =====================================================================
+  // DANIŞAN GİRİŞİ
+  // =====================================================================
+  function sifreUret() {
+    const h = "abcdefghjkmnprstuvyz", r = "23456789";
+    const a = new Uint32Array(7); crypto.getRandomValues(a);
+    return Array.from(a).map((x, i) => (i < 4 ? h[x % h.length] : r[x % r.length])).join("");
+  }
+  const telGoster = (t) => `0${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6, 8)} ${t.slice(8)}`;
+  function girisMesaji(tel, sifre) {
+    return `Merhaba, Zambak Danışmanlık uygulamasına giriş bilgileriniz:\n\nAdres: ${location.origin}/danisan\nTelefon: ${telGoster(tel)}\nŞifre: ${sifre}\n\nUygulamadan ödevlerinizi ve gelişiminizi takip edebilir, bize mesaj yazabilirsiniz. Telefonunuzun ana ekranına eklemek için sayfa açıkken tarayıcı menüsünden "Ana ekrana ekle"yi seçebilirsiniz.`;
+  }
+  async function girisKartiYukle() {
+    const kart = $("#giris-kart");
+    const c = aktifDanisan;
+    const { data } = await sb.from("client_accounts").select("phone,created_at,last_login_at").eq("client_id", c.id).maybeSingle();
+    if (!aktifDanisan || aktifDanisan.id !== c.id) return;
+    if (!data) {
+      kart.innerHTML = `
+        <h3>Danışan girişi</h3>
+        <p class="aciklama">Giriş açarsanız ${c.client_type === "cocuk" ? "veli" : "danışan"} kendi telefonundan ödevlerini, ilerlemesini ve sonraki randevusunu görebilir, size mesaj yazabilir. Görüşme notlarınız ve gözlemleriniz görünmez, yalnızca "veliye görünecek özet" alanına yazdıklarınız görünür.</p>
+        <div class="satir">
+          <div><label for="gk-tel">Giriş telefonu</label><input type="tel" id="gk-tel" maxlength="20" value="${esc(c.phone || "")}" placeholder="05xx xxx xx xx"></div>
+          <div><label for="gk-sifre">Şifre</label><input type="text" id="gk-sifre" maxlength="40" value="${sifreUret()}"></div>
+        </div>
+        <div class="alt-cubuk"><button type="button" class="btn" id="gk-ac">Girişi aç</button></div>`;
+      $("#gk-ac").addEventListener("click", () => girisKaydet());
+    } else {
+      kart.innerHTML = `
+        <div class="baslik-satiri"><h3>Danışan girişi</h3><span class="rozet onaylandi">Açık</span></div>
+        <dl>
+          <dt>Telefon</dt><dd>${esc(telGoster(data.phone))}</dd>
+          <dt>Açılış</dt><dd>${esc(fmtTarih.format(new Date(data.created_at)))}</dd>
+          <dt>Son giriş</dt><dd>${data.last_login_at ? esc(fmtMesaj.format(new Date(data.last_login_at))) : "Henüz giriş yapmadı"}</dd>
+        </dl>
+        <div id="gk-sifirla-alan" class="gizli alt-form">
+          <div class="satir">
+            <div><label for="gk-tel">Giriş telefonu</label><input type="tel" id="gk-tel" maxlength="20" value="${esc(telGoster(data.phone))}"></div>
+            <div><label for="gk-sifre">Yeni şifre</label><input type="text" id="gk-sifre" maxlength="40" value="${sifreUret()}"></div>
+          </div>
+          <div class="alt-cubuk"><button type="button" class="btn" id="gk-kaydet">Kaydet</button></div>
+        </div>
+        <div class="islemler">
+          <button type="button" class="btn kucuk ikincil" id="gk-sifirla">Şifreyi sıfırla</button>
+          <button type="button" class="btn kucuk ikincil" id="gk-kapat">Girişi kapat</button>
+        </div>`;
+      $("#gk-sifirla").addEventListener("click", () => $("#gk-sifirla-alan").classList.toggle("gizli"));
+      $("#gk-kaydet").addEventListener("click", () => girisKaydet());
+      $("#gk-kapat").addEventListener("click", async () => {
+        if (!confirm("Danışanın girişi kapatılsın mı? Mesajlar ve kayıtlar silinmez, sadece uygulamaya giremez.")) return;
+        const { error } = await sb.rpc("danisan_hesabi_kapat", { p_client_id: c.id });
+        bildir(error ? "Kapatılamadı." : "Giriş kapatıldı.");
+        girisKartiYukle();
+      });
+    }
+  }
+  async function girisKaydet() {
+    const tel = $("#gk-tel").value, sifre = $("#gk-sifre").value.trim();
+    const { data, error } = await sb.rpc("danisan_hesabi_olustur", { p_client_id: aktifDanisan.id, p_telefon: tel, p_sifre: sifre });
+    if (error) return bildir(error.message || "Kaydedilemedi.");
+    await girisKartiYukle();
+    const kart = $("#giris-kart");
+    const kutu = document.createElement("div");
+    kutu.className = "bilgi-kutu";
+    kutu.innerHTML = `<strong>Giriş bilgileri hazır</strong>
+      <p>Adres: ${esc(location.origin)}/danisan<br>Telefon: ${esc(telGoster(data))}<br>Şifre: ${esc(sifre)}</p>
+      <p class="aciklama">Şifreyi şimdi gönderin. Güvenlik için bu ekrandan çıkınca tekrar gösterilmez.</p>
+      <div class="islemler">
+        <a class="btn kucuk" href="https://wa.me/90${data}?text=${encodeURIComponent(girisMesaji(data, sifre))}" target="_blank" rel="noopener">WhatsApp ile gönder</a>
+        <button type="button" class="btn kucuk ikincil" id="gk-kopyala">Metni kopyala</button>
+      </div>`;
+    kart.appendChild(kutu);
+    $("#gk-kopyala").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(girisMesaji(data, sifre)); bildir("Kopyalandı."); } catch { bildir("Kopyalanamadı."); }
+    });
   }
 
   baslat();

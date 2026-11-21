@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zambak Danışmanlık</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#a1af83">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.jpg">
+<link rel="manifest" href="/danisan.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- Giriş -->
+<div id="giris-ekrani" class="gizli">
+  <header class="ust">
+    <div class="kap">
+      <img src="/logo.webp" alt="Zambak Danışmanlık logosu" width="112" height="112">
+      <h1>Hoş geldiniz</h1>
+      <p>Uzmanınızın size verdiği telefon numarası ve şifreyle giriş yapın.</p>
+    </div>
+  </header>
+  <main class="kap">
+    <form class="kart" id="giris-form">
+      <label for="g-tel">Telefon numarası</label>
+      <input type="tel" id="g-tel" autocomplete="username" inputmode="tel" placeholder="05xx xxx xx xx" required>
+      <label for="g-sifre">Şifre</label>
+      <input type="password" id="g-sifre" autocomplete="current-password" required>
+      <div class="hata gizli" id="giris-hata"></div>
+      <div class="alt-cubuk"><button class="btn" type="submit">Giriş yap</button></div>
+      <p class="aciklama" style="margin-top:14px">Şifrenizi unuttuysanız uzmanınızdan yenisini isteyebilirsiniz.</p>
+    </form>
+  </main>
+</div>
+
+<!-- Danışan ekranı -->
+<div id="panel" class="gizli">
+  <div class="kap">
+    <div class="panel-ust">
+      <img src="/logo.webp" alt="" width="44" height="44">
+      <h1 id="bolum-baslik">Özet</h1>
+    </div>
+
+    <!-- Özet -->
+    <section id="ozet">
+      <p class="selam" id="selam"></p>
+      <div class="metrikler">
+        <button type="button" class="metrik" data-git="odevler"><span>Bekleyen ödev</span><strong id="m-odev">–</strong></button>
+        <button type="button" class="metrik uyari" data-git="mesajlar"><span>Yeni mesaj</span><strong id="m-mesaj">–</strong></button>
+      </div>
+      <h3 class="ara-baslik">Randevularınız</h3>
+      <div id="randevu-liste"></div>
+      <div class="randevu">
+        <div class="baslik-satiri"><h3>Gelişim</h3><span class="aciklama" id="ilerleme-ozet"></span></div>
+        <div class="ilerleme-grafik" id="ilerleme-grafik"></div>
+      </div>
+      <div class="randevu">
+        <h3>Görüşme özetleri</h3>
+        <div id="ozet-listesi"></div>
+      </div>
+      <div class="randevu">
+        <h3>Hesabım</h3>
+        <label for="yeni-sifre">Yeni şifre <small>(en az 6 karakter)</small></label>
+        <input type="password" id="yeni-sifre" autocomplete="new-password" minlength="6">
+        <div class="alt-cubuk">
+          <button type="button" class="btn ikincil" id="cikis">Çıkış yap</button>
+          <button type="button" class="btn" id="sifre-kaydet">Şifreyi değiştir</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ödevler -->
+    <section id="odevler" class="gizli">
+      <p class="aciklama">Ödevi yaptıkça işaretleyin, nasıl geçtiğini kısaca yazın. Uzmanınız bir sonraki görüşmeden önce görecek.</p>
+      <div id="odev-listesi"></div>
+    </section>
+
+    <!-- Mesajlar -->
+    <section id="mesajlar" class="gizli">
+      <div class="randevu">
+        <div class="mesajlar uzun" id="mesaj-listesi"></div>
+        <form class="mesaj-yaz" id="mesaj-form">
+          <textarea id="mesaj-metin" rows="2" maxlength="2000" placeholder="Uzmanınıza mesaj yazın"></textarea>
+          <button type="submit" class="btn kucuk">Gönder</button>
+        </form>
+        <p class="aciklama kucuk-not">Acil durumlarda lütfen doğrudan telefonla arayın: <a id="tel-link" href="#"></a></p>
+      </div>
+    </section>
+  </div>
+
+  <nav class="alt-menu uclu" aria-label="Ana menü">
+    <button type="button" data-menu="ozet" class="aktif"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12H3l9-9 9 9h-2"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><path d="M9 21v-6h6v6"/></svg>Özet</button>
+    <button type="button" data-menu="odevler"><span class="nokta gizli" id="menu-odev"></span><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 14l2 2 4-4"/></svg>Ödevler</button>
+    <button type="button" data-menu="mesajlar"><span class="nokta gizli" id="menu-mesaj"></span><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20l1.3-3.9A9 8 0 1 1 7.7 19L3 20"/></svg>Mesajlar</button>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/config.js"></script>
+<script src="/danisan.js"></script>
+</body>
+</html>
