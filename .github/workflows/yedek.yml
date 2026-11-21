@@ -1,0 +1,35 @@
+name: Gece yedeği
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # her gece 03:00 (Türkiye)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/yedek.yml"]
+
+jobs:
+  yedek:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Şifreli yedeği indir
+        id: al
+        run: |
+          set -e
+          U=https://daiqahgmedalwdkzpffy.supabase.co/functions/v1/yedek-al
+          T=$(TZ=Europe/Istanbul date +%Y-%m-%d)
+          echo "tarih=$T" >> "$GITHUB_OUTPUT"
+          mkdir yedek
+          curl -sfS --retry 3 -D h.txt -o "yedek/veri-$T.zbk" "$U?tur=veri"
+          N=$(grep -i '^x-dosya-sayisi' h.txt | tr -dc '0-9')
+          N=${N:-0}
+          for i in $(seq 0 $((N-1))); do
+            curl -sfS --retry 3 -o "yedek/dosya-$T-$i.zbk" "$U?tur=dosya&no=$i"
+          done
+          ls -l yedek
+      - name: Sakla (90 gün)
+        uses: actions/upload-artifact@v4
+        with:
+          name: zambak-yedek-${{ steps.al.outputs.tarih }}
+          path: yedek
+          retention-days: 90

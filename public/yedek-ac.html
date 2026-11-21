@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yedek Aç · Zambak Danışmanlık</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+  :root{--krem-koyu:#ece4c9;--yesil:#2f4a22;--metin:#2a2f25;--soluk:#6b7064}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f6f1e1;font-family:system-ui,sans-serif;color:var(--metin);line-height:1.5}
+  main{max-width:560px;margin:0 auto;padding:20px 16px}
+  h1{color:var(--yesil);font-size:1.5rem;margin:8px 0}
+  .kutu{background:#fffdf7;border-radius:14px;padding:16px;margin:12px 0}
+  label{display:block;font-weight:600;margin:10px 0 4px}
+  input{width:100%;padding:11px;border:1.5px solid var(--krem-koyu);border-radius:10px;font:inherit;background:#fff}
+  .btn{margin-top:14px;border:0;border-radius:12px;background:var(--yesil);color:#fff;font:inherit;font-weight:700;padding:13px;width:100%;cursor:pointer}
+  .not{color:var(--soluk);font-size:.88rem}
+  #sonuc li{margin:4px 0}
+  .hata{color:#a33}
+</style>
+</head>
+<body>
+<main>
+  <h1>Yedek dosyası aç</h1>
+  <p class="not">Gece alınan şifreli yedekleri (.zbk) burada açarsınız. Şifre çözme yalnızca bu cihazda yapılır; dosyalar ve şifre hiçbir yere gönderilmez.</p>
+  <div class="kutu">
+    <label for="dosyalar">Yedek dosyaları (.zbk)</label>
+    <input type="file" id="dosyalar" accept=".zbk" multiple>
+    <label for="sifre">Yedek şifresi</label>
+    <input type="password" id="sifre" autocomplete="off">
+    <button class="btn" id="ac">Aç ve indir</button>
+  </div>
+  <ul id="sonuc"></ul>
+</main>
+<script>
+const enc = new TextEncoder(), dec = new TextDecoder();
+async function coz(buf, sifre) {
+  const d = new Uint8Array(buf);
+  if (dec.decode(d.slice(0, 4)) !== "ZBK1") throw new Error("Zambak yedek dosyası değil");
+  const ham = await crypto.subtle.importKey("raw", enc.encode(sifre), "PBKDF2", false, ["deriveKey"]);
+  const anahtar = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: d.slice(4, 20), iterations: 200000, hash: "SHA-256" },
+    ham, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  let duz;
+  try { duz = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: d.slice(20, 32) }, anahtar, d.slice(32))); }
+  catch { throw new Error("Şifre yanlış ya da dosya bozuk"); }
+  const n = new DataView(duz.buffer).getUint32(0);
+  return { baslik: JSON.parse(dec.decode(duz.slice(4, 4 + n))), icerik: duz.slice(4 + n) };
+}
+function indir(ad, veri, tip) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([veri], { type: tip || "application/octet-stream" }));
+  a.download = ad.split("/").pop(); document.body.appendChild(a); a.click(); a.remove();
+}
+document.getElementById("ac").onclick = async () => {
+  const dosyalar = [...document.getElementById("dosyalar").files];
+  const sifre = document.getElementById("sifre").value.trim();
+  const ul = document.getElementById("sonuc"); ul.innerHTML = "";
+  if (!dosyalar.length || !sifre) { ul.innerHTML = '<li class="hata">Dosya seçin ve şifreyi yazın.</li>'; return; }
+  for (const f of dosyalar) {
+    const li = document.createElement("li"); li.textContent = f.name + " açılıyor…"; ul.appendChild(li);
+    try {
+      const { baslik, icerik } = await coz(await f.arrayBuffer(), sifre);
+      indir(baslik.ad, icerik, baslik.tip || (baslik.tur === "veri" ? "application/json" : ""));
+      let ek = "";
+      if (baslik.tur === "veri") {
+        const j = JSON.parse(dec.decode(icerik));
+        const t = j.tablolar || {};
+        ek = " · " + (t["public.clients"] || []).length + " danışan, " + (t["public.appointments"] || []).length + " randevu, " + (t["public.sessions"] || []).length + " görüşme";
+      }
+      li.textContent = "✓ " + baslik.ad.split("/").pop() + ek;
+    } catch (e) { li.className = "hata"; li.textContent = "✗ " + f.name + ": " + e.message; }
+  }
+};
+</script>
+</body>
+</html>
