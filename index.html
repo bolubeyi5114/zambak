@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Randevu Al · Zambak Danışmanlık</title>
+<meta name="description" content="Zambak Danışmanlık – Bolu. Rehberlik ve psikolojik danışmanlık için online randevu.">
+<meta name="theme-color" content="#a1af83">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.jpg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="ust">
+  <div class="kap">
+    <img src="/logo.webp" alt="Zambak Danışmanlık logosu" width="112" height="112">
+    <h1>Randevu Al</h1>
+    <p>Uzm. <span id="uzman-adi">Emine Baş</span> ile görüşmek için uygun bir gün ve saat seçin.</p>
+  </div>
+</header>
+
+<main class="kap">
+  <section class="kart" id="sihirbaz">
+    <div class="adimlar" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+    <!-- Adım 1: Konu -->
+    <div data-adim="1">
+      <div class="adim-baslik"><h2>Görüşme konusu</h2><span class="adim-no">1 / 4</span></div>
+      <p class="aciklama">Size en yakın konuyu seçin. Emin değilseniz "Diğer"i seçebilirsiniz.</p>
+      <div id="konular"><div class="yukleniyor">Konular yükleniyor…</div></div>
+      <div class="alt-cubuk"><button class="btn" id="ileri-1" disabled>Devam</button></div>
+    </div>
+
+    <!-- Adım 2: Tarih ve saat -->
+    <div data-adim="2" class="gizli">
+      <div class="adim-baslik"><h2>Gün ve saat</h2><span class="adim-no">2 / 4</span></div>
+      <p class="aciklama">Görüşmeler yaklaşık <span id="seans-sure">60</span> dakika sürer.</p>
+      <div class="gunler" id="gunler"><div class="yukleniyor">Takvim yükleniyor…</div></div>
+      <div id="saatler-kap"></div>
+      <div class="alt-cubuk">
+        <button class="btn ikincil" data-geri="1">Geri</button>
+        <button class="btn" id="ileri-2" disabled>Devam</button>
+      </div>
+    </div>
+
+    <!-- Adım 3: Ön bilgi -->
+    <form data-adim="3" class="gizli" id="form" novalidate>
+      <div class="adim-baslik"><h2>Ön bilgiler</h2><span class="adim-no">3 / 4</span></div>
+      <p class="aciklama">Bu bilgiler yalnızca uzmanımız tarafından görülür ve görüşmeye hazırlıklı gelmesine yardımcı olur.</p>
+
+      <label>Randevu kimin için?</label>
+      <div class="secenekler" id="kimin">
+        <button type="button" class="cip" data-deger="cocuk">Çocuğum için</button>
+        <button type="button" class="cip" data-deger="ergen">Ergen çocuğum için</button>
+        <button type="button" class="cip" data-deger="yetiskin">Kendim için</button>
+        <button type="button" class="cip" data-deger="cift_aile">Çift / Aile olarak</button>
+      </div>
+
+      <div class="satir">
+        <div>
+          <label for="danisan">Danışanın adı soyadı</label>
+          <input type="text" id="danisan" maxlength="120" autocomplete="off" required>
+        </div>
+        <div>
+          <label for="yas">Yaşı <small>(isteğe bağlı)</small></label>
+          <input type="number" id="yas" min="0" max="120" inputmode="numeric">
+        </div>
+      </div>
+
+      <div id="okul-alani" class="gizli">
+        <label for="okul">Okulu ve sınıfı <small>(isteğe bağlı)</small></label>
+        <input type="text" id="okul" maxlength="60" placeholder="Örn. 6. sınıf">
+      </div>
+
+      <div id="veli-alani">
+        <label for="iletisim-adi">Sizin adınız soyadınız <small id="veli-etiket">(veli)</small></label>
+        <input type="text" id="iletisim-adi" maxlength="120" autocomplete="name" required>
+      </div>
+
+      <div class="satir">
+        <div>
+          <label for="telefon">Telefon</label>
+          <input type="tel" id="telefon" maxlength="20" autocomplete="tel" placeholder="05xx xxx xx xx" required>
+        </div>
+        <div>
+          <label for="eposta">E-posta <small>(isteğe bağlı)</small></label>
+          <input type="email" id="eposta" maxlength="160" autocomplete="email">
+        </div>
+      </div>
+
+      <label for="neden">Kısaca başvuru nedeniniz</label>
+      <textarea id="neden" maxlength="3000" placeholder="Ne zamandır, hangi durumlarda yaşanıyor, sizi en çok ne düşündürüyor?"></textarea>
+
+      <label>Daha önce psikolojik destek ya da danışmanlık alındı mı?</label>
+      <div class="secenekler" id="destek">
+        <button type="button" class="cip" data-deger="evet">Evet</button>
+        <button type="button" class="cip" data-deger="hayir">Hayır</button>
+      </div>
+      <div id="destek-not-alani" class="gizli">
+        <label for="destek-not">Kısaca nereden ve ne zaman? <small>(isteğe bağlı)</small></label>
+        <input type="text" id="destek-not" maxlength="1000">
+      </div>
+
+      <label class="onay">
+        <input type="checkbox" id="kvkk">
+        <span>Paylaştığım kişisel verilerin ve sağlık bilgilerinin, randevu ve danışmanlık hizmeti amacıyla Zambak Danışmanlık tarafından işlenmesine açık rıza veriyorum.</span>
+      </label>
+      <details>
+        <summary>Aydınlatma metni</summary>
+        <p>6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında; bu formda paylaştığınız kimlik, iletişim ve sağlık bilgileri yalnızca randevunuzun planlanması ve danışmanlık hizmetinin sunulması amacıyla, veri sorumlusu Zambak Danışmanlık tarafından işlenir. Bilgileriniz yalnızca uzmanımız tarafından görüntülenir, üçüncü kişilerle paylaşılmaz. Kanunun 11. maddesindeki haklarınız için bizimle iletişime geçebilirsiniz.</p>
+      </details>
+
+      <div class="hata gizli" id="form-hata"></div>
+      <div class="alt-cubuk">
+        <button type="button" class="btn ikincil" data-geri="2">Geri</button>
+        <button type="submit" class="btn">Devam</button>
+      </div>
+    </form>
+
+    <!-- Adım 4: Onay -->
+    <div data-adim="4" class="gizli">
+      <div class="adim-baslik"><h2>Kontrol edin</h2><span class="adim-no">4 / 4</span></div>
+      <div class="ozet" id="ozet"></div>
+      <div class="hata gizli" id="gonder-hata"></div>
+      <div class="alt-cubuk">
+        <button class="btn ikincil" data-geri="3">Düzenle</button>
+        <button class="btn" id="gonder">Randevuyu talep et</button>
+      </div>
+    </div>
+
+    <!-- Başarılı -->
+    <div data-adim="5" class="gizli basari">
+      <div class="ikon">✓</div>
+      <h2>Randevu talebiniz alındı</h2>
+      <p id="basari-metin" class="aciklama"></p>
+      <p class="aciklama">Uzmanımız randevunuzu onaylamak için sizi arayacaktır. Değişiklik için bizi arayabilirsiniz.</p>
+      <div class="alt-cubuk"><a class="btn ikincil" href="/">Yeni randevu</a></div>
+    </div>
+  </section>
+
+  <p class="iletisim">
+    <a id="tel-link" href="tel:+905310298790">+90 531 029 87 90</a><br>
+    <span id="adres">Aktaş Mah. Süreyya Sok. No:17 D:2, Bolu Merkez</span>
+  </p>
+</main>
+
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
